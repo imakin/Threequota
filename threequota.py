@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import os
+import re
+
 useurllib = 1
 usebuilder = 1
 message = ""
@@ -48,13 +50,28 @@ if __name__ == "__main__":
 			f= open ("/tmp/jkl","r")
 	except:
 		print "error while fetching data"
+		exit(1) #exit if error
+
 	data = f.read()
 	f.close()
 
-	if data[ data.find("/dataImg/getRadius?remain="): data[data.find("/dataImg/getRadius?remain="):].find(">")+data.find("/dataImg/getRadius?remain=")][data[ data.find("/dataImg/getRadius?remain="): data[data.find("/dataImg/getRadius?remain="):].find(">")+data.find("/dataImg/getRadius?remain=")].find("=")+1:-1]=="":
-		print "error while fetching data"
-		
-	message = "Quota left: "+ data[ data.find("/dataImg/getRadius?remain="): data[data.find("/dataImg/getRadius?remain="):].find(">")+data.find("/dataImg/getRadius?remain=")][data[ data.find("/dataImg/getRadius?remain="): data[data.find("/dataImg/getRadius?remain="):].find(">")+data.find("/dataImg/getRadius?remain=")].find("=")+1:-1] +" MB"
+	#ultra simple regex, 
+	#bite and suck number/repeated digit (\d+) after "remain=", 
+	kuota = re.findall(r'remain=(\d+)', data)
+	
+	if len(kuota)==0:
+		print "Error while extracting data, perhaps your cell provider isn't Three"
+		exit(1) #exit if error
+	
+	#kuota will contain regular quota and (maybe) kenyang download
+	#reverse and opo, one by one
+	kuota.reverse()
+	reguler = kuota.pop() 	
+	message = 'Quota left: \nRegular: ' + reguler + 'MB'
+	
+	if len(kuota) > 0:
+		kenyang = kuota.pop()
+		message += '\nKenyang Download: ' + kenyang + 'MB'
 
 	if (usebuilder==1):
 		main = threequota()
